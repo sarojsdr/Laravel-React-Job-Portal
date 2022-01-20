@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Validator;
 use JWTAuth;
 
@@ -27,6 +28,7 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+
     public function login(Request $request){
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -52,6 +54,7 @@ class AuthController extends Controller
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
+            'slug' => 'required',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|confirmed|min:6',
         ]);
@@ -62,7 +65,9 @@ class AuthController extends Controller
 
         $user = User::create(array_merge(
             $validator->validated(),
-            ['password' => bcrypt($request->password)]
+            ['password' => bcrypt($request->password),
+                'slug' => Str::slug($request->name),
+                ]
         ));
 
         return response()->json([
